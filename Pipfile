@@ -4,10 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"pytorch_windows" = {file = "http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-win_amd64.whl", sys_platform = "!= 'darwin'"}
-"pytorch_linux" = {file = "http://download.pytorch.org/whl/cpu/torch-0.4.0-cp36-cp36m-linux_x86_64.whl", sys_platform = "== 'darwin'"}
 torchvision = "*"
 jupyterlab = "*"
+pandas = "*"
+sklearn = "*"
+matplotlib = "*"
+numpy = "*"
+"72aec7c" = {file = "http://download.pytorch.org/whl/cu91/torch-0.4.0-cp36-cp36m-linux_x86_64.whl"}
 
 [dev-packages]
 
