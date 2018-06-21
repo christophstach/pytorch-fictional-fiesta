@@ -13,7 +13,7 @@ from datasets import FashionMnistDataset
 from models import ConvolutionalNetwork
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=1)
+parser.add_argument('--epochs', type=int, default=10)
 args = parser.parse_args()
 
 print('''
@@ -40,10 +40,11 @@ print('''
 
 ''')
 
-net = ConvolutionalNetwork()
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+net = ConvolutionalNetwork().to(device)
 params = list(net.parameters())
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.8)
 print(net)
 
 print('''
@@ -55,8 +56,8 @@ print('''
 ''')
 
 epochs = args.epochs
-loss_history_file = './logs/mnist-convolutional-network.loss-history.pkl'
-model_file = './models/mnist-convolutional-network.pt'
+loss_history_file = './logs/fashion-mnist-convolutional-network.loss-history.pkl'
+model_file = './models/fashion-mnist-convolutional-network.pt'
 
 if os.path.isfile(loss_history_file) and os.path.getsize(loss_history_file) > 0:
     with open(loss_history_file, 'rb') as f:
@@ -71,9 +72,8 @@ if os.path.isfile(model_file) and os.path.getsize(model_file) > 0:
 for epoch in tqdm(range(epochs), desc='Training'):
     losses_in_epoch = []
     for data in train_loader:
-        inputs, labels = data
+        inputs, labels = [d.to(device) for d in data]
         optimizer.zero_grad()
-
         # forward + backward + optimize
         outputs = net(inputs)
         loss = criterion(outputs, labels)
@@ -107,7 +107,7 @@ class_correct = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 class_total = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 with torch.no_grad():
     for data in test_loader:
-        images, labels = data
+        images, labels = [d.to(device) for d in data]
         outputs = net(images)
         _, predicted = torch.max(outputs.data, 1)
 

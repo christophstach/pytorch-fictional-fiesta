@@ -13,7 +13,7 @@ from datasets import MnistFlattenedDataset
 from models import ThreeLayerFullyConnectedNetwork
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=1)
+parser.add_argument('--epochs', type=int, default=10)
 args = parser.parse_args()
 
 print('''
@@ -40,10 +40,11 @@ print('''
 
 ''')
 
-net = ThreeLayerFullyConnectedNetwork()
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+net = ThreeLayerFullyConnectedNetwork().to(device)
 params = list(net.parameters())
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001)
+optimizer = optim.Adadelta(net.parameters())
 print(net)
 
 print('''
@@ -71,13 +72,10 @@ if os.path.isfile(model_file) and os.path.getsize(model_file) > 0:
 for epoch in tqdm(range(epochs), desc='Training'):
     losses_in_epoch = []
     for data in train_loader:
-        inputs, labels = data
-
+        inputs, labels = [d.to(device) for d in data]
         optimizer.zero_grad()
-
         # forward + backward + optimize
         outputs = net(inputs)
-        print(outputs, labels)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -109,7 +107,7 @@ class_correct = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 class_total = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 with torch.no_grad():
     for data in test_loader:
-        images, labels = data
+        images, labels = [d.to(device) for d in data]
         outputs = net(images)
         _, predicted = torch.max(outputs.data, 1)
 

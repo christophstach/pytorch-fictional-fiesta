@@ -11,7 +11,10 @@ class MnistFlattenedDataset(Dataset):
         ds = torchvision.datasets.MNIST(
             './data/mnist',
             download=True,
-            transform=None,
+            transform=transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,))
+            ]),
             train=train
         )
 
@@ -36,7 +39,10 @@ class MnistDataset(Dataset):
         ds = torchvision.datasets.MNIST(
             './data/mnist',
             download=True,
-            transform=None,
+            transform=transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,))
+            ]),
             train=train
         )
 

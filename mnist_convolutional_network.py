@@ -10,10 +10,10 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from datasets import MnistDataset
-from models import ConvolutionalNetwork
+from models import ConvolutionalNetwork2
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=1)
+parser.add_argument('--epochs', type=int, default=10)
 args = parser.parse_args()
 
 print('''
@@ -27,7 +27,7 @@ print('''
 train_dataset = MnistDataset(train=True)
 test_dataset = MnistDataset(train=False)
 
-train_loader = DataLoader(train_dataset, batch_size=160, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=10000, shuffle=True)
 
 classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
@@ -40,10 +40,11 @@ print('''
 
 ''')
 
-net = ConvolutionalNetwork()
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+net = ConvolutionalNetwork2().to(device)
 params = list(net.parameters())
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+criterion = nn.NLLLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.8)
 print(net)
 
 print('''
@@ -71,9 +72,8 @@ if os.path.isfile(model_file) and os.path.getsize(model_file) > 0:
 for epoch in tqdm(range(epochs), desc='Training'):
     losses_in_epoch = []
     for data in train_loader:
-        inputs, labels = data
+        inputs, labels = [d.to(device) for d in data]
         optimizer.zero_grad()
-
         # forward + backward + optimize
         outputs = net(inputs)
         loss = criterion(outputs, labels)
@@ -107,7 +107,7 @@ class_correct = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 class_total = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 with torch.no_grad():
     for data in test_loader:
-        images, labels = data
+        images, labels = [d.to(device) for d in data]
         outputs = net(images)
         _, predicted = torch.max(outputs.data, 1)
 
